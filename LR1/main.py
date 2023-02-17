@@ -86,5 +86,17 @@ class BinaryCalculator:
 
     @classmethod
     def binary_numbers_product(cls, first_number: int, second_number: int) -> str:
-        pass
+        binary_first_number = cls.translate_to_binary(first_number)
+        binary_second_number = cls.translate_to_binary(second_number)
+        sign: str = "0" if binary_first_number[0] == binary_second_number[0] else "1"
+        return sign + cls.__binary_modules_product(binary_first_number, binary_second_number)
+
+    @classmethod
+    def __binary_modules_product(cls, binary_first: str, binary_second: str) -> str:
+        binary_result: str = "0" * 15
+        for i in range(15, 0, -1):
+            if binary_first[i] == "1":
+                shifted_sum: str = binary_second[(15-i):] + "0" * (15 - i)
+                binary_result = cls.__binary_modules_sum("0" + binary_result, shifted_sum)
+        return binary_result
 
