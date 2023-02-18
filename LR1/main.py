@@ -133,6 +133,13 @@ class BinaryCalculator:
         return cls.__binary_summation(binary_number, cls.translate_to_binary(1, bit_amount=len(binary_number)))
 
     @classmethod
+    def modified_twos_complement(cls, binary_number: str) -> str:
+        if binary_number[0] == "0":
+            return "0" + binary_number
+        binary_number = cls.ones_complement(binary_number)
+        return "1" + cls.__binary_summation(binary_number, cls.translate_to_binary(1, bit_amount=len(binary_number)))
+
+    @classmethod
     def binary_numbers_product(cls, first_number: int, second_number: int) -> str:
         binary_first_number: str = cls.translate_to_binary(first_number)
         binary_second_number: str = cls.translate_to_binary(second_number)
@@ -179,20 +186,46 @@ class BinaryCalculator:
     def translate_to_floating_point(cls, number: int) -> list[str, str, str]:
         sign = "1" if number < 0 else "0"
         binary_number = cls.translate_to_binary(number)[1:]
-        digit_order: int = binary_number.find("1") + 1
+        digit_order: int = len(binary_number) - (binary_number.find("1") + 1)
         exponent: str = cls.__binary_summation(cls.translate_to_binary(127, 8),
                                                cls.translate_to_binary(digit_order, bit_amount=8))
-        mantissa = binary_number[digit_order:] + "0" * (23 - digit_order)
+        mantissa = binary_number[binary_number.find("1") + 1:] + ("0" * (23 - digit_order))
         return [sign, exponent, mantissa]
 
     @classmethod
     def __move_the_mantissa(cls, mantissa: str, mantissa_moves: int) -> str:
-        return "0" * mantissa_moves + mantissa[mantissa_moves:]
+        if mantissa_moves == 0:
+            return mantissa
+        return "0" * mantissa_moves + mantissa[:-mantissa_moves]
 
     @classmethod
-    def floating_point_summary(cls, first_number: int, second_number: int) -> list[str, str, str]:
-        floating_first: list[str, str, str] = cls.translate_to_floating_point(first_number)
-        floating_second: list[str, str, str] = cls.translate_to_floating_point(second_number)
+    def __normalize_floating_point(cls, floating_point: list[str, str, str]) -> list[str, str, str]:
+        additional_digit_order = floating_point[2].find("1")
+        new_digit_order = cls.__binary_summation(floating_point[1],
+                                                 cls.translate_to_binary(additional_digit_order, bit_amount=8))
+        new_mantissa = floating_point[2][additional_digit_order:23] + "0" * additional_digit_order
+        return [floating_point[0], new_digit_order, new_mantissa]
+
+    @classmethod
+    def __mantissa_addition(cls, floating_first: list[str, str, str],
+                            floating_second: list[str, str, str]) -> list[str, str, str]:
+        first_mantissa = cls.modified_twos_complement(floating_first[0] + floating_first[2])
+        second_mantissa = cls.modified_twos_complement(floating_second[0] + floating_second[2])
+        order: str = floating_first[1]
+        new_mantissa = cls.__binary_summation(first_mantissa, second_mantissa)
+        if new_mantissa[:2] in ("10", "01"):
+            order = cls.__binary_summation(order, "00000001")
+            new_mantissa = new_mantissa[0] + new_mantissa[:len(new_mantissa)-1]
+        sign: str = "0" if new_mantissa[:2] == "00" else "1"
+        new_mantissa = cls.twos_complement(new_mantissa[1:])[1:]
+        # new_floating_point = cls.__normalize_floating_point([sign, order, new_mantissa])
+        new_floating_point = [sign, order, new_mantissa]
+        return new_floating_point
+
+    @classmethod
+    def __order_normalizing(cls, floating_first: list[str, str, str], floating_second: list[str, str, str]) -> tuple:
+        floating_first[2] = "1" + floating_first[2]
+        floating_second[2] = "1" + floating_second[2]
         if cls.is_binary_module_greater_than(floating_first[1], floating_second[1]):
             point_moves: int = 0
             while not cls.are_binary_numbers_equal(floating_first[1], floating_second[1]):
@@ -205,20 +238,25 @@ class BinaryCalculator:
                 floating_first[1] = cls.__binary_summation(floating_first[1], "00000001")
                 point_moves += 1
             floating_first[2] = cls.__move_the_mantissa(floating_first[2], point_moves)
-        new_mantissa = cls.binary_numbers_sum(floating_first[0] + floating_first[2],
-                                              floating_second[0] + floating_second[2])
-        return [new_mantissa[0], floating_second[1], new_mantissa[1:]]
+        return floating_first, floating_second
+
+    @classmethod
+    def floating_point_summary(cls, first_number: int, second_number: int) -> list[str, str, str]:
+        floating_first: list[str, str, str] = cls.translate_to_floating_point(first_number)
+        floating_second: list[str, str, str] = cls.translate_to_floating_point(second_number)
+        floating_first, floating_second = cls.__order_normalizing(floating_first, floating_second)
+        new_floating_point = cls.__mantissa_addition(floating_first, floating_second)
+        return new_floating_point
 
     @classmethod
     def floating_point_to_decimal(cls, floating_point_number: list[str, str, str]):
         decimal_degree: int = cls.translate_to_decimal("0" + floating_point_number[1]) - 127
         digit_degree = 0
-        result: float = 0
+        mantissa_result: float = 0
         for digit in floating_point_number[2]:
-            result += int(digit)*2**(digit_degree - 1)
+            mantissa_result += int(digit)*2**digit_degree
             digit_degree -= 1
-        module: float = (result + 1) * (2**decimal_degree)
-        return (-1) * module if floating_point_number[0] == "1" else module
+        return (1 - 2 * int(floating_point_number[0])) * mantissa_result * 2**decimal_degree
 
 
 # print(BinaryCalculator.fixed_point_to_decimal(BinaryCalculator.binary_numbers_division(14, 23)))
@@ -230,4 +268,4 @@ class BinaryCalculator:
 # print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(-14, 23)))
 # print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(14, -23)))
 # print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(-14, -23)))
-print(BinaryCalculator.floating_point_to_decimal(BinaryCalculator.floating_point_summary(1441, 2301)))
+print(BinaryCalculator.floating_point_to_decimal(BinaryCalculator.floating_point_summary(14, 23)))
