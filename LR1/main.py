@@ -204,7 +204,7 @@ class BinaryCalculator:
     @classmethod
     def translate_to_floating_point(cls, number: Union[int, float]) -> list[str, str, str]:
         if number == 0:
-            return ["0", "10000000", "0" * 23]
+            return ["0", "01111111", "0" * 23]
         sign = "1" if number < 0 else "0"
         if isinstance(number, int):
             binary_number = cls.translate_int_to_binary(number)[1:]
@@ -218,7 +218,7 @@ class BinaryCalculator:
             binary_number = "".join(binary_number_list)
         exponent: str = cls.binary_numbers_sum(cls.translate_int_to_binary(127, 9),
                                                cls.translate_int_to_binary(digit_order, bit_amount=9))[1:]
-        mantissa = binary_number[binary_number.find("1") + 1:]
+        mantissa = binary_number[binary_number.find("1"):]
         if len(mantissa) < 23:
             mantissa += "0" * (23 - len(mantissa))
         else:
@@ -248,8 +248,6 @@ class BinaryCalculator:
 
     @classmethod
     def __order_normalizing(cls, floating_first: list[str, str, str], floating_second: list[str, str, str]) -> tuple:
-        floating_first[2] = "1" + floating_first[2]
-        floating_second[2] = "1" + floating_second[2]
         if cls.is_binary_module_greater_than(floating_first[1], floating_second[1]):
             point_moves: int = 0
             while not cls.are_binary_numbers_equal(floating_first[1], floating_second[1]):
@@ -293,4 +291,4 @@ class BinaryCalculator:
 # print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(-14, 23)))
 # print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(14, -23)))
 # print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(-14, -23)))
-print(BinaryCalculator.floating_point_to_decimal(BinaryCalculator.floating_point_summary(14.111, 23.222)))
+print(BinaryCalculator.floating_point_to_decimal(BinaryCalculator.floating_point_summary(0, 23.222)))
