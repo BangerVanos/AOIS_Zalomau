@@ -199,14 +199,6 @@ class BinaryCalculator:
         return "0" * mantissa_moves + mantissa[:-mantissa_moves]
 
     @classmethod
-    def __normalize_floating_point(cls, floating_point: list[str, str, str]) -> list[str, str, str]:
-        additional_digit_order = floating_point[2].find("1")
-        new_digit_order = cls.__binary_summation(floating_point[1],
-                                                 cls.translate_to_binary(additional_digit_order, bit_amount=8))
-        new_mantissa = floating_point[2][additional_digit_order:23] + "0" * additional_digit_order
-        return [floating_point[0], new_digit_order, new_mantissa]
-
-    @classmethod
     def __mantissa_addition(cls, floating_first: list[str, str, str],
                             floating_second: list[str, str, str]) -> list[str, str, str]:
         first_mantissa = cls.modified_twos_complement(floating_first[0] + floating_first[2])
@@ -218,7 +210,6 @@ class BinaryCalculator:
             new_mantissa = new_mantissa[0] + new_mantissa[:len(new_mantissa)-1]
         sign: str = "0" if new_mantissa[:2] == "00" else "1"
         new_mantissa = cls.twos_complement(new_mantissa[1:])[1:]
-        # new_floating_point = cls.__normalize_floating_point([sign, order, new_mantissa])
         new_floating_point = [sign, order, new_mantissa]
         return new_floating_point
 
