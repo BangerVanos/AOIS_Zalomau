@@ -1,4 +1,5 @@
 # Variant 7
+import random
 from typing import Union
 
 
@@ -190,7 +191,7 @@ class BinaryCalculator:
             list_result: list = list(result)
             list_result[i] = "0" if remainder[0] == "1" else "1"
             result = ''.join(list_result)
-        result = cls.binary_number_round(result, 9)
+        # result = cls.binary_number_round(result, 9)
         return sign + "0." + result
 
     @classmethod
@@ -282,13 +283,75 @@ class BinaryCalculator:
         return (1 - 2 * int(floating_point_number[0])) * mantissa_result * 2**decimal_degree
 
 
-# print(BinaryCalculator.fixed_point_to_decimal(BinaryCalculator.binary_numbers_division(14, 23)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_sum_from_int(23, -11)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_sum_from_int(-23, -11)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_sum_from_int(23, 11)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_sum_from_int(-23, -11)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(14, 23)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(-14, 23)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(14, -23)))
-# print(BinaryCalculator.translate_to_decimal(BinaryCalculator.binary_numbers_product(-14, -23)))
-print(BinaryCalculator.floating_point_to_decimal(BinaryCalculator.floating_point_summary(0, 23.222)))
+def get_two_random_ints() -> tuple[int, int]:
+    return random.randint(-127, 128), random.randint(-127, 128)
+
+
+def get_two_random_floats() -> tuple[float, float]:
+    return random.choice([-1, 1])*round(random.randint(-127, 128)*random.random(), 4),\
+        random.choice([-1, 1])*round(random.randint(-127, 128)*random.random(), 4)
+
+
+def test_addition() -> None:
+    print("-"*62)
+    print("|\tADDITION"+" "*(60 - len("|\tADDITION") - 1)+"|")
+    random_ints: tuple[int, int] = get_two_random_ints()
+    result: Union[int, float] = BinaryCalculator.translate_to_decimal(
+        BinaryCalculator.binary_numbers_sum_from_int(random_ints[0], random_ints[1]))
+    result_str: str = f"|\t{random_ints[0]} + {random_ints[1]} = {result}"
+    print(result_str+" "*(60 - len(result_str) - 1)+"|")
+    print("-" * 62)
+
+
+def test_subtraction() -> None:
+    print("-" * 62)
+    print("|\tSUBTRACTION" + " " * (60 - len("|\tSUBTRACTION") - 1) + "|")
+    random_ints: tuple[int, int] = get_two_random_ints()
+    result: Union[int, float] = BinaryCalculator.translate_to_decimal(
+        BinaryCalculator.binary_numbers_substr(random_ints[0], random_ints[1]))
+    result_str: str = f"|\t{random_ints[0]} - {random_ints[1]} = {result}"
+    print(result_str + " " * (60 - len(result_str) - 1) + "|")
+    print("-" * 62)
+
+
+def test_multiplication() -> None:
+    print("-" * 62)
+    print("|\tMULTIPLICATION" + " " * (60 - len("|\tMULTIPLICATION") - 1) + "|")
+    random_ints: tuple[int, int] = get_two_random_ints()
+    result: Union[int, float] = BinaryCalculator.translate_to_decimal(
+        BinaryCalculator.binary_numbers_product(random_ints[0], random_ints[1]))
+    result_str: str = f"|\t{random_ints[0]} * {random_ints[1]} = {result}"
+    print(result_str + " " * (60 - len(result_str) - 1) + "|")
+    print("-" * 62)
+
+
+def test_division() -> None:
+    print("-" * 62)
+    print("|\tDIVISION (works if |x1| < |x2|)" + " " * (60 - len("|\tDIVISION (works if |x1| < |x2|)") - 1) + "|")
+    random_ints: tuple[int, int] = (random.randint(-10, 10), random.randint(25, 50))
+    result: Union[int, float] = BinaryCalculator.fixed_point_to_decimal(
+        BinaryCalculator.binary_numbers_division(random_ints[0], random_ints[1])
+    )
+    result_str: str = f"|\t{random_ints[0]} / {random_ints[1]} ~ {result}"
+    print(result_str + " " * (60 - len(result_str) - 1) + "|")
+    print("-" * 62)
+
+
+def test_floating_point_addition() -> None:
+    print("-" * 62)
+    print("|\tFLOATING POINT ADDITION" + " " * (60 - len("|\tFLOATING POINT ADDITION") - 1) + "|")
+    random_floats: tuple[float, float] = get_two_random_floats()
+    result = BinaryCalculator.floating_point_to_decimal(
+        BinaryCalculator.floating_point_summary(random_floats[0], random_floats[1])
+    )
+    result_str: str = f"|\t{random_floats[0]} + {random_floats[1]} ~ {result}"
+    print(result_str + " " * (60 - len(result_str) - 1) + "|")
+    print("-" * 62)
+
+
+if __name__ == "__main__":
+    test_addition()
+    test_subtraction()
+    test_multiplication()
+    test_division()
+    test_floating_point_addition()
