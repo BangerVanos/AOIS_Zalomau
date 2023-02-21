@@ -4,12 +4,15 @@ from typing import Union
 
 
 class BinaryCalculator:
-    """Calculator, which translates two given integer decimal numbers to binary form
-    and performs operations on them. Each number contains 16 bits,
-    (most significant for sign) which means numbers lie in [-2^15; 2^15-1] interval"""
+    """Calculator, which translates two given integer|float decimal numbers to binary form
+    and performs operations on them. Each integer number contains 16 bits,
+    (most significant bit is for sign) which means such numbers lie in [-2^15; 2^15-1] interval.
+    Floating point numbers are presented in single-precision (32 bits), just like float type"""
 
     @classmethod
-    def translate_int_to_binary(cls, number: int, bit_amount: int = 16) -> str:
+    def convert_int_to_binary(cls, number: int, bit_amount: int = 16) -> str:
+        """Convert given integer number two binary form. Only 16 binary integer numbers supported,
+        so please, don't use it for huge numbers"""
         binary_number: str = ""
         minus_bit = "1" if number < 0 else "0"
         number = abs(number)
@@ -21,12 +24,13 @@ class BinaryCalculator:
         return binary_number
 
     @classmethod
-    def translate_float_to_binary(cls, number: float, bit_amount: int = 16) -> str:
+    def convert_float_to_binary(cls, number: float, bit_amount: int = 16) -> str:
+        """Convert float decimal number to binary point form. Whole part and fraction are separated by dot"""
         minus_bit = "1" if number < 0 else "0"
         number = abs(number)
         whole_part = int(number)
         fraction: float = number - float(whole_part)
-        binary_number: str = cls.translate_int_to_binary(whole_part)[1:]
+        binary_number: str = cls.convert_int_to_binary(whole_part)[1:]
         if binary_number.find("1") == -1:
             binary_number = minus_bit + "0."
         else:
@@ -38,7 +42,8 @@ class BinaryCalculator:
         return binary_number
 
     @classmethod
-    def translate_to_decimal(cls, binary_number: str) -> int:
+    def convert_to_decimal(cls, binary_number: str) -> int:
+        """Convert binary integer number to decimal form"""
         number = 0
         for i in range(1, len(binary_number)):
             number += 2 ** (len(binary_number) - 1 - i) * int(binary_number[i])
@@ -46,14 +51,19 @@ class BinaryCalculator:
 
     @classmethod
     def is_binary_number_positive(cls, binary_number: str) -> bool:
+        """Returns True if number is greater or equal to zero. False otherwise.
+        Number is represented in binary form"""
         return True if binary_number[0] == "0" else False
 
     @classmethod
     def binary_abs(cls, binary_number: str) -> str:
+        """Returns |binary_number| (that's module, if you don't know)"""
         return "0" + binary_number[1:]
 
     @classmethod
     def is_binary_module_greater_than(cls, compared_binary_one: str, compared_binary_two: str) -> bool:
+        """Returns True if |compared_binary_one| > |compared_binary_two|. False otherwise. Both numbers are represented
+        in binary form"""
         for i in range(len(compared_binary_one)):
             if compared_binary_one[i] == "1" and compared_binary_two[i] == "0":
                 return True
@@ -63,6 +73,8 @@ class BinaryCalculator:
 
     @classmethod
     def are_binary_numbers_equal(cls, compared_binary_one: str, compared_binary_two: str) -> bool:
+        """Returns True if compared_binary_one equals to compared_binary_two. False otherwise.
+         Both numbers are represented in binary form"""
         for i in range(len(compared_binary_one)):
             if compared_binary_one[i] != compared_binary_two[i]:
                 return False
@@ -70,6 +82,8 @@ class BinaryCalculator:
 
     @classmethod
     def is_binary_greater_than(cls, compared_binary_one: str, compared_binary_two: str) -> bool:
+        """Returns True if compared_binary_one > compared_binary_two. False otherwise. Both numbers are represented
+        in binary form"""
         if compared_binary_one[0] == "0" and compared_binary_two[0] == "1":
             return True
         elif compared_binary_one[0] == "1" and compared_binary_two[0] == "0":
@@ -81,6 +95,8 @@ class BinaryCalculator:
 
     @classmethod
     def binary_number_round(cls, binary_number: str, round_factor: int) -> str:
+        """Rounding of binary number. Add one to rounded digit if there is at least single one after it.
+        Adds zero otherwise"""
         if round_factor == 15:
             return binary_number
         if binary_number[round_factor + 1:] == "0":
@@ -92,27 +108,33 @@ class BinaryCalculator:
 
     @classmethod
     def binary_numbers_sum(cls, binary_first_number: str, binary_second_number: str) -> str:
+        """Binary numbers addition. Sign is taken into account. Method converts number to twos complement if it is
+        negative"""
         if cls.is_binary_number_positive(binary_first_number) and cls.is_binary_number_positive(binary_second_number):
-            return cls.__binary_summation(binary_first_number, binary_second_number)
+            return cls.__unsigned_binary_addition(binary_first_number, binary_second_number)
         binary_first_number_converted: str = binary_first_number if binary_first_number[0] == "0" \
             else cls.twos_complement(binary_first_number)
         binary_second_number_converted: str = binary_second_number if binary_second_number[0] == "0" \
             else cls.twos_complement(binary_second_number)
-        return cls.twos_complement(cls.__binary_summation(binary_first_number_converted,
-                                                          binary_second_number_converted))
+        return cls.twos_complement(cls.__unsigned_binary_addition(binary_first_number_converted,
+                                                                  binary_second_number_converted))
 
     @classmethod
     def binary_numbers_sum_from_int(cls, first_number: int, second_number: int) -> str:
-        binary_first_number: str = cls.translate_int_to_binary(first_number)
-        binary_second_number: str = cls.translate_int_to_binary(second_number)
+        """Just give it two integer numbers, and it will return you binary form of addition.
+        Don't forget to convert it to decimal form after"""
+        binary_first_number: str = cls.convert_int_to_binary(first_number)
+        binary_second_number: str = cls.convert_int_to_binary(second_number)
         return cls.binary_numbers_sum(binary_first_number, binary_second_number)
 
     @classmethod
-    def binary_numbers_substr(cls, first_number: int, second_number: int) -> str:
+    def binary_numbers_subtraction(cls, first_number: int, second_number: int) -> str:
+        """Subtraction is just addition, but sign of second operand becomes opposite"""
         return cls.binary_numbers_sum_from_int(first_number, -second_number)
 
     @classmethod
-    def __binary_summation(cls, binary_first: str, binary_second: str) -> str:
+    def __unsigned_binary_addition(cls, binary_first: str, binary_second: str) -> str:
+        """'Stupid' addition of binary numbers. No matter which sign is"""
         if len(binary_first) < len(binary_second):
             binary_first = "0" * (len(binary_second)-len(binary_first)) + binary_first
         else:
@@ -138,6 +160,8 @@ class BinaryCalculator:
 
     @classmethod
     def ones_complement(cls, binary_number: str) -> str:
+        """Ones complement for signed addition (subtraction). Useless for positive numbers as you get
+        same number in such case"""
         reversed_digits: dict = {"0": "1", "1": "0", ".": "."}
         if binary_number[0] == "0":
             return binary_number
@@ -146,41 +170,50 @@ class BinaryCalculator:
 
     @classmethod
     def twos_complement(cls, binary_number: str) -> str:
+        """Twos complement. Used for signed addition (subtraction). Useless for positive numbers
+        as you get same number in such case"""
         if binary_number[0] == "0":
             return binary_number
         binary_number = cls.ones_complement(binary_number)
-        return cls.__binary_summation(binary_number, cls.translate_int_to_binary(1, bit_amount=len(binary_number)))
+        return cls.__unsigned_binary_addition(binary_number,
+                                              cls.convert_int_to_binary(1, bit_amount=len(binary_number)))
 
     @classmethod
     def modified_twos_complement(cls, binary_number: str) -> str:
+        """Modified twos complement for mantissa addition"""
         if binary_number[0] == "0":
             return "0" + binary_number
         binary_number = cls.ones_complement(binary_number)
-        return "1" + cls.__binary_summation(binary_number,
-                                            cls.translate_int_to_binary(1, bit_amount=len(binary_number)))
+        return "1" + cls.__unsigned_binary_addition(binary_number,
+                                                    cls.convert_int_to_binary(1, bit_amount=len(binary_number)))
 
     @classmethod
     def binary_numbers_product(cls, first_number: int, second_number: int) -> str:
-        binary_first_number: str = cls.translate_int_to_binary(first_number)
-        binary_second_number: str = cls.translate_int_to_binary(second_number)
+        """Signed binary numbers product. Actually, this method only specifies sign of the production and
+        then makes unsigned product."""
+        binary_first_number: str = cls.convert_int_to_binary(first_number)
+        binary_second_number: str = cls.convert_int_to_binary(second_number)
         sign: str = "0" if binary_first_number[0] == binary_second_number[0] else "1"
         return sign + cls.__binary_modules_product(binary_first_number, binary_second_number)
 
     @classmethod
     def __binary_modules_product(cls, binary_first: str, binary_second: str) -> str:
+        """Unsigned binary numbers product"""
         binary_result: str = "0" * len(binary_first)
         for i in range(len(binary_first) - 1, 0, -1):
             if binary_first[i] == "1":
                 shifted_sum: str = binary_second[(len(binary_first) - 1 - i):] + "0" * (len(binary_first) - 1 - i)
-                binary_result = cls.__binary_summation(binary_result, shifted_sum)
+                binary_result = cls.__unsigned_binary_addition(binary_result, shifted_sum)
         return binary_result
 
     @classmethod
     def binary_numbers_division(cls, dividend: int, divider: int) -> str:
-        binary_dividend: str = cls.translate_int_to_binary(dividend)
-        binary_divider: str = cls.translate_int_to_binary(divider)
+        """Divide number_1 by number_2, represented in binary form. Works only if |number_1| < |number_2|.
+        ValueError otherwise"""
+        binary_dividend: str = cls.convert_int_to_binary(dividend)
+        binary_divider: str = cls.convert_int_to_binary(divider)
         sign: str = "0" if binary_dividend[0] == binary_divider[0] else "1"
-        remainder: str = cls.binary_numbers_substr(abs(dividend), abs(divider))
+        remainder: str = cls.binary_numbers_subtraction(abs(dividend), abs(divider))
         if remainder[0] == "0":
             raise ValueError
         result: str = "0" * 16
@@ -196,6 +229,7 @@ class BinaryCalculator:
 
     @classmethod
     def fixed_point_to_decimal(cls, fixed_point_number: str) -> float:
+        """Convert fixed point number to decimal form"""
         fraction: str = fixed_point_number[3:]
         result: float = 0
         for i in range(len(fraction)):
@@ -204,21 +238,22 @@ class BinaryCalculator:
 
     @classmethod
     def translate_to_floating_point(cls, number: Union[int, float]) -> list[str, str, str]:
+        """Convert decimal number to floating point form"""
         if number == 0:
             return ["0", "01111111", "0" * 23]
         sign = "1" if number < 0 else "0"
         if isinstance(number, int):
-            binary_number = cls.translate_int_to_binary(number)[1:]
+            binary_number = cls.convert_int_to_binary(number)[1:]
             digit_order: int = len(binary_number) - (binary_number.find("1") + 1)
         else:
-            binary_number = cls.translate_float_to_binary(number, bit_amount=32)[1:]
+            binary_number = cls.convert_float_to_binary(number, bit_amount=32)[1:]
             digit_order = binary_number.find(".") - (binary_number.find("1") + 1)
             digit_order += 1 if digit_order < 0 else 0
             binary_number_list: list = list(binary_number)
             binary_number_list.pop(binary_number_list.index("."))
             binary_number = "".join(binary_number_list)
-        exponent: str = cls.binary_numbers_sum(cls.translate_int_to_binary(127, 9),
-                                               cls.translate_int_to_binary(digit_order, bit_amount=9))[1:]
+        exponent: str = cls.binary_numbers_sum(cls.convert_int_to_binary(127, 9),
+                                               cls.convert_int_to_binary(digit_order, bit_amount=9))[1:]
         mantissa = binary_number[binary_number.find("1"):]
         if len(mantissa) < 23:
             mantissa += "0" * (23 - len(mantissa))
@@ -228,6 +263,7 @@ class BinaryCalculator:
 
     @classmethod
     def __move_the_mantissa(cls, mantissa: str, mantissa_moves: int) -> str:
+        """Move the mantissa after exponent normalizing"""
         if mantissa_moves == 0:
             return mantissa
         return "0" * mantissa_moves + mantissa[:-mantissa_moves]
@@ -235,12 +271,13 @@ class BinaryCalculator:
     @classmethod
     def __mantissa_addition(cls, floating_first: list[str, str, str],
                             floating_second: list[str, str, str]) -> list[str, str, str]:
+        """Addition of floating point numbers mantissas"""
         first_mantissa = cls.modified_twos_complement(floating_first[0] + floating_first[2])
         second_mantissa = cls.modified_twos_complement(floating_second[0] + floating_second[2])
         order: str = floating_first[1]
-        new_mantissa = cls.__binary_summation(first_mantissa, second_mantissa)
+        new_mantissa = cls.__unsigned_binary_addition(first_mantissa, second_mantissa)
         if new_mantissa[:2] in ("10", "01"):
-            order = cls.__binary_summation(order, "00000001")
+            order = cls.__unsigned_binary_addition(order, "00000001")
             new_mantissa = new_mantissa[0] + new_mantissa[:len(new_mantissa)-1]
         sign: str = "0" if new_mantissa[:2] == "00" else "1"
         new_mantissa = cls.twos_complement(new_mantissa[1:])[1:]
@@ -248,17 +285,18 @@ class BinaryCalculator:
         return new_floating_point
 
     @classmethod
-    def __order_normalizing(cls, floating_first: list[str, str, str], floating_second: list[str, str, str]) -> tuple:
+    def __exponent_normalizing(cls, floating_first: list[str, str, str], floating_second: list[str, str, str]) -> tuple:
+        """Make exponents of two floating point numbers equal"""
         if cls.is_binary_module_greater_than(floating_first[1], floating_second[1]):
             point_moves: int = 0
             while not cls.are_binary_numbers_equal(floating_first[1], floating_second[1]):
-                floating_second[1] = cls.__binary_summation(floating_second[1], "00000001")
+                floating_second[1] = cls.__unsigned_binary_addition(floating_second[1], "00000001")
                 point_moves += 1
             floating_second[2] = cls.__move_the_mantissa(floating_second[2], point_moves)
         else:
             point_moves: int = 0
             while not cls.are_binary_numbers_equal(floating_first[1], floating_second[1]):
-                floating_first[1] = cls.__binary_summation(floating_first[1], "00000001")
+                floating_first[1] = cls.__unsigned_binary_addition(floating_first[1], "00000001")
                 point_moves += 1
             floating_first[2] = cls.__move_the_mantissa(floating_first[2], point_moves)
         return floating_first, floating_second
@@ -266,15 +304,17 @@ class BinaryCalculator:
     @classmethod
     def floating_point_summary(cls, first_number: Union[int, float],
                                second_number: Union[int, float]) -> list[str, str, str]:
+        """Addition of two floating point numbers"""
         floating_first: list[str, str, str] = cls.translate_to_floating_point(first_number)
         floating_second: list[str, str, str] = cls.translate_to_floating_point(second_number)
-        floating_first, floating_second = cls.__order_normalizing(floating_first, floating_second)
+        floating_first, floating_second = cls.__exponent_normalizing(floating_first, floating_second)
         new_floating_point = cls.__mantissa_addition(floating_first, floating_second)
         return new_floating_point
 
     @classmethod
     def floating_point_to_decimal(cls, floating_point_number: list[str, str, str]):
-        decimal_degree: int = cls.translate_to_decimal("0" + floating_point_number[1]) - 127
+        """Convert floating point form to decimal number"""
+        decimal_degree: int = cls.convert_to_decimal("0" + floating_point_number[1]) - 127
         digit_degree = 0
         mantissa_result: float = 0
         for digit in floating_point_number[2]:
@@ -296,7 +336,7 @@ def test_addition() -> None:
     print("-"*62)
     print("|\tADDITION"+" "*(60 - len("|\tADDITION") - 1)+"|")
     random_ints: tuple[int, int] = get_two_random_ints()
-    result: Union[int, float] = BinaryCalculator.translate_to_decimal(
+    result: Union[int, float] = BinaryCalculator.convert_to_decimal(
         BinaryCalculator.binary_numbers_sum_from_int(random_ints[0], random_ints[1]))
     result_str: str = f"|\t{random_ints[0]} + {random_ints[1]} = {result}"
     print(result_str+" "*(60 - len(result_str) - 1)+"|")
@@ -307,8 +347,8 @@ def test_subtraction() -> None:
     print("-" * 62)
     print("|\tSUBTRACTION" + " " * (60 - len("|\tSUBTRACTION") - 1) + "|")
     random_ints: tuple[int, int] = get_two_random_ints()
-    result: Union[int, float] = BinaryCalculator.translate_to_decimal(
-        BinaryCalculator.binary_numbers_substr(random_ints[0], random_ints[1]))
+    result: Union[int, float] = BinaryCalculator.convert_to_decimal(
+        BinaryCalculator.binary_numbers_subtraction(random_ints[0], random_ints[1]))
     result_str: str = f"|\t{random_ints[0]} - {random_ints[1]} = {result}"
     print(result_str + " " * (60 - len(result_str) - 1) + "|")
     print("-" * 62)
@@ -318,7 +358,7 @@ def test_multiplication() -> None:
     print("-" * 62)
     print("|\tMULTIPLICATION" + " " * (60 - len("|\tMULTIPLICATION") - 1) + "|")
     random_ints: tuple[int, int] = get_two_random_ints()
-    result: Union[int, float] = BinaryCalculator.translate_to_decimal(
+    result: Union[int, float] = BinaryCalculator.convert_to_decimal(
         BinaryCalculator.binary_numbers_product(random_ints[0], random_ints[1]))
     result_str: str = f"|\t{random_ints[0]} * {random_ints[1]} = {result}"
     print(result_str + " " * (60 - len(result_str) - 1) + "|")
@@ -350,6 +390,8 @@ def test_floating_point_addition() -> None:
 
 
 if __name__ == "__main__":
+    # You don't rule the situation, ha-ha. Look at the tests. Just run that file using python command.
+    # Make sure you've got python interpreter for that. Try that several times and you will see different situations
     test_addition()
     test_subtraction()
     test_multiplication()
