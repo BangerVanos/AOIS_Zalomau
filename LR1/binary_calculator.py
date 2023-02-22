@@ -237,7 +237,7 @@ class BinaryCalculator:
         return -result if fixed_point_number[0] == "1" else result
 
     @classmethod
-    def translate_to_floating_point(cls, number: Union[int, float]) -> list[str, str, str]:
+    def convert_to_floating_point(cls, number: Union[int, float]) -> list[str, str, str]:
         """Convert decimal number to floating point form"""
         if number == 0:
             return ["0", "01111111", "0" * 23]
@@ -305,8 +305,8 @@ class BinaryCalculator:
     def floating_point_summary(cls, first_number: Union[int, float],
                                second_number: Union[int, float]) -> list[str, str, str]:
         """Addition of two floating point numbers"""
-        floating_first: list[str, str, str] = cls.translate_to_floating_point(first_number)
-        floating_second: list[str, str, str] = cls.translate_to_floating_point(second_number)
+        floating_first: list[str, str, str] = cls.convert_to_floating_point(first_number)
+        floating_second: list[str, str, str] = cls.convert_to_floating_point(second_number)
         floating_first, floating_second = cls.__exponent_normalizing(floating_first, floating_second)
         new_floating_point = cls.__mantissa_addition(floating_first, floating_second)
         return new_floating_point
