@@ -1,0 +1,2 @@
+class LogicalFormulaParser:
+    pass

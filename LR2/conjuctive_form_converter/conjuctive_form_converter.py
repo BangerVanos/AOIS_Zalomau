@@ -1,0 +1,2 @@
+class ConjuctiveFormConverter:
+    pass
