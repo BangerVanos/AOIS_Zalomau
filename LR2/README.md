@@ -7,7 +7,8 @@
 > itertools (built-in, no installation required)
 
 ### Run
-> <p>cd LR2</p>
+
+> <p>cd test</p>
 > <p>python test.py</p>
 
 <p>If you want ot change logic formula, open test.py and change
