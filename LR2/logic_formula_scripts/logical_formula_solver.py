@@ -85,6 +85,9 @@ class LogicalFormulaSolver:
                                           '2. Spaces\n'
                                           '3. Numbers after letters\n'
                                           '4. Logical operations symbols')
+        if not raw_token == '':
+            self.token_list.append(Token(TokenType.VARIABLE, raw_token, self.token_orders[TokenType.VARIABLE]))
+            self.variables.add(raw_token)
         self.variables = sorted(self.variables)
 
     def __solve_operation(self):
