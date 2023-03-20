@@ -48,9 +48,14 @@ class LogicalFormulaSolver:
     def __init__(self, raw_formula: str):
         self.token_list: list[Token] = []
         self.raw_formula: str = raw_formula
-        self.variables: set[str] = set()
+        self.__variables: set[str] = set()
         self.operation_stack: list[Token] = []
         self.value_stack: list[int] = []
+
+    @property
+    def variables(self):
+        self.solve_formula()
+        return self.__variables
 
     def __replace_special_syms(self):
         self.raw_formula = self.raw_formula.replace('->', '→')
@@ -76,7 +81,7 @@ class LogicalFormulaSolver:
             elif self.one_sym_tokens.get(sym, None):
                 if not raw_token == '':
                     self.token_list.append(Token(TokenType.VARIABLE, raw_token, self.token_orders[TokenType.VARIABLE]))
-                    self.variables.add(raw_token)
+                    self.__variables.add(raw_token)
                 raw_token = ''
                 new_token_type = self.one_sym_tokens[sym]
                 self.token_list.append(Token(new_token_type, sym, self.token_orders[new_token_type]))
@@ -87,8 +92,8 @@ class LogicalFormulaSolver:
                                           '4. Logical operations symbols')
         if not raw_token == '':
             self.token_list.append(Token(TokenType.VARIABLE, raw_token, self.token_orders[TokenType.VARIABLE]))
-            self.variables.add(raw_token)
-        self.variables = sorted(self.variables)
+            self.__variables.add(raw_token)
+        self.__variables = sorted(self.__variables)
 
     def __solve_operation(self):
         if self.operation_stack[len(self.operation_stack) - 1].token_type == TokenType.INVERSION:
@@ -133,16 +138,16 @@ class LogicalFormulaSolver:
 
     def solve_formula(self):
         self.__divide_into_tokens()
-        possible_var_combs = sorted(list(product([0, 1], repeat=len(self.variables))))
+        possible_var_combs = sorted(list(product([0, 1], repeat=len(self.__variables))))
         raw_truth_table: list[FullLogicalInterpretation] = list()
         for combo in possible_var_combs:
-            logical_interpretation = dict(zip(self.variables, combo))
+            logical_interpretation = dict(zip(self.__variables, combo))
             raw_truth_table.append(self.__solve_for_interpretation(logical_interpretation))
         return raw_truth_table
 
     def beautiful_result_print(self):
         raw_truth_table = self.solve_formula()
-        for var in self.variables:
+        for var in self.__variables:
             print(var.center(len(var) + 2, ' ') + '|', end='')
         print(self.raw_formula.center(len(self.raw_formula) + 2, ' '))
         for interpretation in raw_truth_table:
