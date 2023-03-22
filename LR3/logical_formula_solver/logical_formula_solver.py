@@ -58,10 +58,10 @@ class LogicalFormulaSolver:
         return self.__variables
 
     def __replace_special_syms(self):
-        self.raw_formula = self.raw_formula.replace('->', '→')
-        self.raw_formula = self.raw_formula.replace('=>', '→')
         self.raw_formula = self.raw_formula.replace('<->', '↔')
         self.raw_formula = self.raw_formula.replace('<=>', '↔')
+        self.raw_formula = self.raw_formula.replace('->', '→')
+        self.raw_formula = self.raw_formula.replace('=>', '→')
         self.raw_formula = self.raw_formula.replace('^', '∧')
         self.raw_formula = self.raw_formula.replace('&', '∧')
         self.raw_formula = self.raw_formula.replace('*', '∧')
