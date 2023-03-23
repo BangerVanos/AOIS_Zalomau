@@ -9,12 +9,12 @@ test_formula = '((!x1*!x2*x3)+(!x1*x2*!x3)+(!x1*x2*x3)+(x1*x2*!x3))'
 
 def test_calculation_method():
     print('CALCULATION MINIMIZATION METHOD'.center(60, ' '))
-    minimizer = QuineAndCalculationMinimizer('(!((!x1+!x2)&!(x1&x3+(x3<->x1))))', mode='CNF')
+    minimizer = QuineAndCalculationMinimizer(f'{good_formula}', mode='CNF')
     minimizer.minimize_func_calculation_method()
     print(f'PCNF: {minimizer.non_minimized_func}')
     print(f'Reduced CNF: {minimizer.reduced_func}')
     print(f'Minimized CNF: {minimizer.minimized_func}')
-    minimizer = QuineAndCalculationMinimizer('(!((!x1+!x2)&!(x1&x3+(x3<->x1))))', mode='DNF')
+    minimizer = QuineAndCalculationMinimizer(f'{good_formula}', mode='DNF')
     minimizer.minimize_func_calculation_method()
     print(f'PDNF: {minimizer.non_minimized_func}')
     print(f'Reduced DNF: {minimizer.reduced_func}')
@@ -23,12 +23,12 @@ def test_calculation_method():
 
 def test_quine_method():
     print('QUINE MINIMIZATION METHOD'.center(60, ' '))
-    minimizer = QuineAndCalculationMinimizer('(!((!x1+!x2)&!(x1&x3+(x3<->x1))))', mode='CNF')
+    minimizer = QuineAndCalculationMinimizer(f'{good_formula}', mode='CNF')
     minimizer.minimize_func_quine_method(debug=True)
     print(f'PCNF: {minimizer.non_minimized_func}')
     print(f'Reduced CNF: {minimizer.reduced_func}')
     print(f'Minimized CNF: {minimizer.minimized_func}')
-    minimizer = QuineAndCalculationMinimizer('(!((!x1+!x2)&!(x1&x3+(x3<->x1))))', mode='DNF')
+    minimizer = QuineAndCalculationMinimizer(f'{good_formula}', mode='DNF')
     minimizer.minimize_func_quine_method(debug=True)
     print(f'PDNF: {minimizer.non_minimized_func}')
     print(f'Reduced DNF: {minimizer.reduced_func}')
@@ -36,9 +36,12 @@ def test_quine_method():
 
 
 def test_karnaugh_method():
-    pass
+    print('KARNAUGH METHOD'.center(60, ' '))
+    minimizer = KarnaughMinimizer('(!((!x1+!x2)&!(x1&x3+(x3<->x1))))', mode='DNF')
+    minimizer.print_karnaugh_map()
 
 
 if __name__ == '__main__':
-    test_calculation_method()
-    test_quine_method()
+    # test_calculation_method()
+    # test_quine_method()
+    test_karnaugh_method()

@@ -53,7 +53,7 @@ class LogicalFormulaSolver:
         self.value_stack: list[int] = []
 
     @property
-    def variables(self):
+    def variables(self) -> set[str]:
         self.solve_formula()
         return self.__variables
 
@@ -93,7 +93,7 @@ class LogicalFormulaSolver:
         if not raw_token == '':
             self.token_list.append(Token(TokenType.VARIABLE, raw_token, self.token_orders[TokenType.VARIABLE]))
             self.__variables.add(raw_token)
-        self.__variables = sorted(self.__variables)
+        self.__variables = set(sorted(self.__variables))
 
     def __solve_operation(self):
         if self.operation_stack[len(self.operation_stack) - 1].token_type == TokenType.INVERSION:
@@ -146,6 +146,7 @@ class LogicalFormulaSolver:
         return raw_truth_table
 
     def beautiful_result_print(self):
+        print('\n' + 'TRUTH TABLE\n'.center(60, ' '))
         raw_truth_table = self.solve_formula()
         for var in self.__variables:
             print(var.center(len(var) + 2, ' ') + '|', end='')

@@ -4,7 +4,8 @@ from logical_formula_solver.logical_formula_solver import LogicalFormulaSolver, 
 
 class QuineAndCalculationMinimizer:
     def __init__(self, raw_formula: str, mode: str = 'DNF'):
-        self.formula_variables = LogicalFormulaSolver(raw_formula).variables
+        self.__solver = LogicalFormulaSolver(raw_formula)
+        self.formula_variables = self.__solver.variables
         if mode == 'DNF':
             self.inner_operation = ' ∧ '
             self.outer_operation = ' ∨ '
@@ -86,6 +87,7 @@ class QuineAndCalculationMinimizer:
         return list_of_literals
 
     def minimize_func_calculation_method(self):
+        self.__solver.beautiful_result_print()
         self.reduce_func()
         implicants_list = self.reduced_func.split(self.outer_operation)
         necessary_implicants, unnecessary_implicants = [], []
@@ -119,6 +121,7 @@ class QuineAndCalculationMinimizer:
         return necessary_implicants
 
     def minimize_func_quine_method(self, debug: bool = False):
+        self.__solver.beautiful_result_print()
         self.reduce_func()
         reduced_func_implicants = self.reduced_func.split(self.outer_operation)
         implicant_table = self.__fill_implicant_table(reduced_func_implicants)
