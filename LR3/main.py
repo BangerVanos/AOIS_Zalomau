@@ -3,7 +3,7 @@ from minimizing_karnaugh_method.minimizing_karnaugh_method import KarnaughMinimi
 
 
 formula = '(!((!x1+!x2)&!(x1&x3)))'
-good_formula = '(!((!x1+!x2)&!(x1&x3+(x3<->x1))))'
+good_formula = '(!((!x1+!x2)&!(x1&x3+(x3<->x4))))'
 test_formula = '((!x1*!x2*x3)+(!x1*x2*!x3)+(!x1*x2*x3)+(x1*x2*!x3))'
 
 
@@ -37,8 +37,12 @@ def test_quine_method():
 
 def test_karnaugh_method():
     print('KARNAUGH METHOD'.center(60, ' '))
-    minimizer = KarnaughMinimizer('(!((!x1+!x2)&!(x1&x3+(x3<->x1))))', mode='DNF')
+    minimizer = KarnaughMinimizer(good_formula, mode='DNF')
     minimizer.print_karnaugh_map()
+    print(f'Minimized DNF: {minimizer.minimized_func}')
+    minimizer = KarnaughMinimizer(good_formula, mode='CNF')
+    minimizer.print_karnaugh_map()
+    print(f'Minimized CNF: {minimizer.minimized_func}')
 
 
 if __name__ == '__main__':
