@@ -12,6 +12,17 @@ class KarnaughMap:
     map: list
 
 
+class Point:
+    def __init__(self, x: int, y: int):
+        self.x = x
+        self.y = y
+
+    def __eq__(self, other):
+        if not isinstance(other, Point):
+            return False
+        return self.x == other.x and self.y == other.y
+
+
 class KarnaughMinimizer:
     def __init__(self, raw_formula: str, mode: str = 'DNF'):
         self.__solver = LogicalFormulaSolver(raw_formula)
@@ -59,6 +70,10 @@ class KarnaughMinimizer:
 
     def __solve_karnaugh_map(self):
         covered_cells = list()
+        for i in range(len(self.__karnaugh_map.map)):
+            for j in range(len(self.__karnaugh_map.map[i])):
+                if not self.__karnaugh_map.map[i][j] == self.look_number:
+                    continue
 
     def print_karnaugh_map(self):
         self.__build_karnaugh_map()
