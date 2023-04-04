@@ -3,7 +3,7 @@ from minimizing_karnaugh_method.minimizing_karnaugh_method import KarnaughMinimi
 
 
 formula = '(!((!x1+!x2)&!(x1&x3)))'
-good_formula = '(!((!x1+!x2)&!(x1&x3+(x3<->x4))))'
+good_formula = '(!((!x1+!x2)&!(x1&x3+(x1<->x4))))'
 test_formula = '((!x1*!x2*x3)+(!x1*x2*!x3)+(!x1*x2*x3)+(x1*x2*!x3))'
 
 
