@@ -1,5 +1,5 @@
-from pcnf_pdnf_converter import PcnfPdnfFormConverter
-from logical_formula_solver import LogicalFormulaSolver, FullLogicalInterpretation
+from .pcnf_pdnf_converter import PcnfPdnfFormConverter
+from .logical_formula_solver import LogicalFormulaSolver, FullLogicalInterpretation
 
 
 class QuineAndCalculationMinimizer:
@@ -121,7 +121,6 @@ class QuineAndCalculationMinimizer:
         return necessary_implicants
 
     def minimize_func_quine_method(self, debug: bool = False):
-        self.__solver.beautiful_result_print()
         self.reduce_func()
         reduced_func_implicants = self.reduced_func.split(self.outer_operation)
         implicant_table = self.__fill_implicant_table(reduced_func_implicants)

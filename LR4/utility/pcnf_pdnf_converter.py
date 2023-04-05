@@ -1,5 +1,5 @@
-from logical_formula_solver import LogicalFormulaSolver
-from logical_formula_solver import FullLogicalInterpretation
+from .logical_formula_solver import LogicalFormulaSolver
+from .logical_formula_solver import FullLogicalInterpretation
 from typing import Union
 
 
@@ -25,9 +25,9 @@ class PcnfPdnfFormConverter:
                 pcnf_implementation_numbers.append(str(implementation_number))
                 for var, value in implementation.logical_interpretation.items():
                     disjunction_set.append(var if value == 0 else '!'+var)
-                disjunction_sets.append('('+' ∨ '.join(disjunction_set)+')')
+                disjunction_sets.append('('+' ∨ '.join(sorted(disjunction_set))+')')
             implementation_number += 1
-        self.__pcnf = ' ∧ '.join(disjunction_sets)
+        self.__pcnf = ' ∧ '.join(sorted(disjunction_sets))
         self.pcnf_num_form = '∧(' + ', '.join(pcnf_implementation_numbers) + ')'
 
     def build_pdnf(self):
@@ -40,9 +40,9 @@ class PcnfPdnfFormConverter:
                 pdnf_implementation_numbers.append(str(implementation_number))
                 for var, value in implementation.logical_interpretation.items():
                     conjunction_set.append(var if value == 1 else '!' + var)
-                conjunction_sets.append('(' + ' ∧ '.join(conjunction_set) + ')')
+                conjunction_sets.append('(' + ' ∧ '.join(sorted(conjunction_set)) + ')')
             implementation_number += 1
-        self.__pdnf = ' ∨ '.join(conjunction_sets)
+        self.__pdnf = ' ∨ '.join(sorted(conjunction_sets))
         self.pdnf_num_form = '∨(' + ', '.join(pdnf_implementation_numbers) + ')'
 
     @property
