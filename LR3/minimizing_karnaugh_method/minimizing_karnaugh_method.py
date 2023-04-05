@@ -26,7 +26,7 @@ class Cell:
 
     def are_cells_in_karnaugh_neighbourhood(self, other):
         if not isinstance(other, Cell):
-            return False
+            raise TypeError("Other object must be Cell type")
         if self.x == other.x:
             self_coordinate, other_coordinate = self.y, other.y
         elif self.y == other.y:
@@ -34,13 +34,12 @@ class Cell:
         else:
             return False
         return abs(self_coordinate - other_coordinate) - 1 == 0 \
-            or (int(math.log(abs(self_coordinate - other_coordinate) - 1, 2)) ==
-                math.log(abs(self_coordinate - other_coordinate) - 1, 2)
+            or (abs(self_coordinate - other_coordinate) - 1 & abs(self_coordinate - other_coordinate) - 2 == 0
                 and math.log(abs(self_coordinate - other_coordinate) - 1, 2) > 0)
 
     def distance(self, other):
         if not isinstance(other, Cell):
-            return 0
+            raise TypeError("Other object must be Cell type")
         return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
 
     def __repr__(self):
@@ -66,7 +65,7 @@ class KarnaughMinimizer:
     @property
     def minimized_func(self) -> str:
         self.__build_karnaugh_map()
-        obligatory_areas = self.__get_obligatory_areas(self.__make_karnaugh_areas(v_mode=True))
+        obligatory_areas = self.__get_obligatory_groups(self.__make_karnaugh_groups(v_mode=True))
         self.__solve_karnaugh_map(obligatory_areas)
         return self.__minimized_func
 
@@ -100,28 +99,31 @@ class KarnaughMinimizer:
             if full_implementation.logical_interpretation == variables_with_values:
                 return full_implementation.formula_value
 
-    def __make_karnaugh_areas(self, v_mode: bool = True):
-        karnaugh_areas = list()
+    def __make_karnaugh_groups(self, v_mode: bool = True):
+        karnaugh_groups = list()
         one_row_map = list(chain.from_iterable(self.__karnaugh_map.map)) if v_mode \
             else list(chain.from_iterable(list(zip(*self.__karnaugh_map.map))))
         i, j = 0, 0
         for i in range(len(one_row_map)):
             if not one_row_map[i] == self.need_number:
                 continue
-            karnaugh_area = [Cell(i // len(self.__karnaugh_map.map[0]), i % len(self.__karnaugh_map.map[0]))]
+            karnaugh_group = [Cell(i // len(self.__karnaugh_map.map[0]), i % len(self.__karnaugh_map.map[0]))]
             last_covered_cell = i
-            for j in self.__range_from_nearest_cells(i, one_row_map).keys():
+            for j in self.__range_from_nearest_cells(i, one_row_map):
                 if i == j or not one_row_map[j] == self.need_number:
                     continue
-                if self.__check_cell_for_neighbourhood(last_covered_cell, j):
-                    karnaugh_area.append(Cell(j // len(self.__karnaugh_map.map[0]),
-                                              j % len(self.__karnaugh_map.map[0])))
+                if abs(last_covered_cell - j) - 1 & abs(last_covered_cell - j) - 2 == 0:
+                    karnaugh_group.append(Cell(j // len(self.__karnaugh_map.map[0]),
+                                               j % len(self.__karnaugh_map.map[0])))
                     last_covered_cell = j
-            while not (int(math.log(len(karnaugh_area), 2)) == math.log(len(karnaugh_area), 2)
-                       and self.__is_area_rectangular(karnaugh_area)):
-                karnaugh_area.pop(0 if i > j else len(karnaugh_area) - 1)
-            karnaugh_areas.append(karnaugh_area)
-        return karnaugh_areas
+            while not (len(karnaugh_group) & (len(karnaugh_group) - 1) == 0
+                       and self.__is_group_rectangular(karnaugh_group)):
+                karnaugh_group.pop(0 if i > j else len(karnaugh_group) - 1)
+            karnaugh_groups.append(karnaugh_group)
+        return karnaugh_groups
+
+    def __make_group_for_cell(self):
+        pass
 
     def __range_from_nearest_cells(self, first_cell_index, chain_map):
         all_cells = [Cell(i // len(self.__karnaugh_map.map[0]),
@@ -132,55 +134,55 @@ class KarnaughMinimizer:
         return dict(sorted(distances.items(), key=lambda x: x[1]))
 
     @staticmethod
-    def __get_index_of_the_remotest_point(area: list[Cell]):
-        center_mass_x = sum([cell.x for cell in area]) / len(area)
-        center_mass_y = sum([cell.y for cell in area]) / len(area)
+    def __get_index_of_the_remotest_point(group: list[Cell]):
+        center_mass_x = sum([cell.x for cell in group]) / len(group)
+        center_mass_y = sum([cell.y for cell in group]) / len(group)
         distances = []
-        for cell in area:
+        for cell in group:
             distances.append(Cell(center_mass_x, center_mass_y).distance(cell))
         return distances.index(max(distances))
 
     def __check_cell_for_neighbourhood(self, i: int, j: int):
-        point_1 = Cell(i // len(self.__karnaugh_map.map[0]), i % len(self.__karnaugh_map.map[0]))
-        point_2 = Cell(j // len(self.__karnaugh_map.map[0]), j % len(self.__karnaugh_map.map[0]))
-        return point_1.are_cells_in_karnaugh_neighbourhood(point_2)
+        cell_1 = Cell(i // len(self.__karnaugh_map.map[0]), i % len(self.__karnaugh_map.map[0]))
+        cell_2 = Cell(j // len(self.__karnaugh_map.map[0]), j % len(self.__karnaugh_map.map[0]))
+        return cell_1.are_cells_in_karnaugh_neighbourhood(cell_2)
 
     @staticmethod
-    def __is_area_rectangular(area: list[Cell]):
-        if len(area) <= 1:
+    def __is_group_rectangular(group: list[Cell]):
+        if len(group) <= 1:
             return True
-        center_mass_x = sum([cell.x for cell in area]) / len(area)
-        center_mass_y = sum([cell.y for cell in area]) / len(area)
-        distances = [Cell(center_mass_x, center_mass_y).distance(cell) for cell in area]
-        return len(set(distances)) == len(area) // 2
+        center_mass_x = sum([cell.x for cell in group]) / len(group)
+        center_mass_y = sum([cell.y for cell in group]) / len(group)
+        distances = [Cell(center_mass_x, center_mass_y).distance(cell) for cell in group]
+        return len(set(distances)) == len(group) // 2
 
     @staticmethod
-    def __get_obligatory_areas(karnaugh_areas: list[list[Cell]]):
-        karnaugh_areas = sorted(karnaugh_areas, key=len, reverse=True)
+    def __get_obligatory_groups(karnaugh_groups: list[list[Cell]]):
+        karnaugh_groups = sorted(karnaugh_groups, key=len, reverse=True)
         covered_cells = list()
-        obligatory_areas = list()
-        for area in karnaugh_areas:
-            if not all([cell in covered_cells for cell in area]):
-                obligatory_areas.append(area)
-                covered_cells.extend(area)
-        return obligatory_areas
+        obligatory_groups = list()
+        for group in karnaugh_groups:
+            if not all([cell in covered_cells for cell in group]):
+                obligatory_groups.append(group)
+                covered_cells.extend(group)
+        return obligatory_groups
 
-    def __solve_karnaugh_map(self, karnaugh_areas):
+    def __solve_karnaugh_map(self, karnaugh_groups):
         terms = list()
-        for area in karnaugh_areas:
-            terms.append(self.__make_term_for_area(area))
+        for group in karnaugh_groups:
+            terms.append(self.__make_term_for_group(group))
         self.__minimized_func = self.outer_operation.join(terms)
 
-    def __make_term_for_area(self, karnaugh_area):
+    def __make_term_for_group(self, karnaugh_group):
         literals = list()
         variables_values = {variable: [] for variable in self.formula_variables}
-        for point in karnaugh_area:
+        for cell in karnaugh_group:
             for i in range(len(self.__karnaugh_map.row_variables)):
                 variables_values[self.__karnaugh_map.row_variables[i]] \
-                    .append(int(self.__karnaugh_map.gray_codes_row[point.y][i]))
+                    .append(int(self.__karnaugh_map.gray_codes_row[cell.y][i]))
             for i in range(len(self.__karnaugh_map.col_variables)):
                 variables_values[self.__karnaugh_map.col_variables[i]] \
-                    .append(int(self.__karnaugh_map.gray_codes_col[point.x][i]))
+                    .append(int(self.__karnaugh_map.gray_codes_col[cell.x][i]))
         for variable in self.formula_variables:
             if len(set(variables_values[variable])) <= 1:
                 literals.append('!' * (self.need_number ^ variables_values[variable].pop()) + variable)
