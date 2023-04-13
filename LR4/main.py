@@ -7,5 +7,5 @@ if __name__ == '__main__':
     sdbs = SDBS3()
     sdbs.print_all()
     print('D8421+n'.center(20, '-'))
-    d8421_plus_one = BinaryDecimalSynthesizer(6)
+    d8421_plus_one = BinaryDecimalSynthesizer(1)
     d8421_plus_one.print_all()
