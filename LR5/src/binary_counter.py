@@ -17,8 +17,8 @@ def get_binary_counter_truth_tables():
         pre_tact_inputs = list(map(int, list('{0:03b}'.format(pre_tact_number)[-3:])))
         post_tact_inputs = list(map(int, list('{0:03b}'.format(post_tact_number)[-3:])))
         for j in range(1, 4):
-            trigger_truth_tables[f'H{j}_tt'].append(FullLogicalInterpretation(dict(list(zip(POST_TACT_INPUT_NAMES,
-                                                                                            post_tact_inputs)) +
+            trigger_truth_tables[f'H{j}_tt'].append(FullLogicalInterpretation(dict(list(zip(PRE_TACT_INPUT_NAMES,
+                                                                                            pre_tact_inputs)) +
                                                                                    [(FSM_SIGNAL_NAME, fsm_signal)]),
                                                                               formula_value=int(pre_tact_inputs[j - 1]
                                                                                                 != post_tact_inputs[
@@ -59,7 +59,7 @@ class BinaryCounter:
                                                      in self.__trigger_truth_tables.values()]))
             trigger_truth_table_inputs = list(map(str, [self.__trigger_truth_tables['H1_tt'][i].
                                                         logical_interpretation[key]
-                                                        for key in [FSM_SIGNAL_NAME] + list(POST_TACT_INPUT_NAMES)]))
+                                                        for key in [FSM_SIGNAL_NAME] + list(PRE_TACT_INPUT_NAMES)]))
             print('  '.join(pre_tact_inputs + trigger_truth_table_inputs + trigger_function_values))
         print('MINIMIZED TRIGGER FUNCTIONS'.center(40))
         for trigger, minimized_func in self.minimized_trigger_funcs.items():
