@@ -2,14 +2,14 @@ class AssociativeMemory:
     def __init__(self):
         self.__memory_table: list[list[int]] = [[0] * 16 for _ in range(16)]
         self.__is_table_diagonalized = False
-        self.logical_operations = {'unequivalence': self.__unequivalence_operation,
-                                   'equivalence': self.__equivalence_operation,
-                                   'second_prohibition': self.__second_prohibition,
-                                   'second_to_first_implication': self.__second_to_first_implication,
-                                   'f6': self.__unequivalence_operation,
-                                   'f9': self.__equivalence_operation,
-                                   'f4': self.__second_prohibition,
-                                   'f11': self.__second_to_first_implication}
+        self.__logical_operations = {'unequivalence': self.__unequivalence_operation,
+                                     'equivalence': self.__equivalence_operation,
+                                     'second_prohibition': self.__second_prohibition,
+                                     'second_to_first_implication': self.__second_to_first_implication,
+                                     'f6': self.__unequivalence_operation,
+                                     'f9': self.__equivalence_operation,
+                                     'f4': self.__second_prohibition,
+                                     'f11': self.__second_to_first_implication}
 
     def diagonal_addressing(self):
         if self.__is_table_diagonalized:
@@ -78,7 +78,7 @@ class AssociativeMemory:
         operation_result: list[int] = list()
         for i in range(16):
             x1, x2 = first_digit_col[i], second_digit_col[i]
-            operation_result.append(self.logical_operations[logical_operation](x1, x2))
+            operation_result.append(self.__logical_operations[logical_operation](x1, x2))
         return ''.join(list(map(str, operation_result)))
 
     @staticmethod
@@ -112,7 +112,7 @@ class AssociativeMemory:
         result, carry = '', 0
         for fi, si in zip(first_number, second_number):
             result = str(int(fi ^ si ^ carry)) + result
-            carry = int((fi and si) or (fi and carry) or (fi and carry))
+            carry = int((fi and si) or (fi ^ si) and carry)
         result = str(carry) + result
         return result
 
@@ -164,12 +164,12 @@ class AssociativeMemory:
         elif kwargs['search_mode'] == 'pattern':
             primary_results = self.closest_pattern_search(kwargs['pattern'])
         if kwargs['filter_mode'] == 'sort':
-            return sorted(primary_results, reverse=kwargs['reverse'])
+            return sorted(primary_results, reverse=kwargs.get('reverse', False))
         elif kwargs['filter_mode'] in ('min', 'max'):
             return self.__find_extremum_in_word_sequence(primary_results, kwargs['filter_mode'])
 
     def __find_extremum_in_word_sequence(self, sequence: list[str], mode: str = 'min'):
-        extremum_word = '0' * 16
+        extremum_word = '0' * 16 if len(sequence) <= 0 else sequence[0]
         result_sequence: list[str] = list()
         for word in sequence:
             if self.__compare_words(word, extremum_word) == {'min': -1, 'max': 1}[mode]:
