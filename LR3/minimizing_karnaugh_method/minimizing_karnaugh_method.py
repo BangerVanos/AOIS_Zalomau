@@ -2,7 +2,7 @@ from logical_formula_solver.logical_formula_solver import LogicalFormulaSolver, 
 from dataclasses import dataclass
 from typing import Optional, Union
 import math
-from itertools import chain
+from itertools import chain, combinations
 
 
 @dataclass
@@ -24,18 +24,25 @@ class Cell:
             return False
         return self.x == other.x and self.y == other.y
 
-    def are_cells_in_karnaugh_neighbourhood(self, other):
+    def __gt__(self, other):
         if not isinstance(other, Cell):
-            raise TypeError("Other object must be Cell type")
-        if self.x == other.x:
-            self_coordinate, other_coordinate = self.y, other.y
-        elif self.y == other.y:
-            self_coordinate, other_coordinate = self.x, other.x
-        else:
             return False
-        return abs(self_coordinate - other_coordinate) - 1 == 0 \
-            or (abs(self_coordinate - other_coordinate) - 1 & abs(self_coordinate - other_coordinate) - 2 == 0
-                and math.log(abs(self_coordinate - other_coordinate) - 1, 2) > 0)
+        return self.distance(Cell(0, 0)) > other.distance(Cell(0, 0))
+
+    def __lt__(self, other):
+        if not isinstance(other, Cell):
+            return False
+        return self.distance(Cell(0, 0)) < other.distance(Cell(0, 0))
+
+    def __ge__(self, other):
+        if not isinstance(other, Cell):
+            return False
+        return self.distance(Cell(0, 0)) >= other.distance(Cell(0, 0))
+
+    def __le__(self, other):
+        if not isinstance(other, Cell):
+            return False
+        return self.distance(Cell(0, 0)) <= other.distance(Cell(0, 0))
 
     def distance(self, other):
         if not isinstance(other, Cell):
@@ -65,7 +72,7 @@ class KarnaughMinimizer:
     @property
     def minimized_func(self) -> str:
         self.__build_karnaugh_map()
-        obligatory_areas = self.__get_obligatory_groups(self.__make_karnaugh_groups(v_mode=True))
+        obligatory_areas = self.__get_obligatory_groups(self.__make_karnaugh_groups())
         self.__solve_karnaugh_map(obligatory_areas)
         return self.__minimized_func
 
@@ -99,65 +106,68 @@ class KarnaughMinimizer:
             if full_implementation.logical_interpretation == variables_with_values:
                 return full_implementation.formula_value
 
-    def __make_karnaugh_groups(self, v_mode: bool = True):
-        karnaugh_groups = list()
-        one_row_map = list(chain.from_iterable(self.__karnaugh_map.map)) if v_mode \
-            else list(chain.from_iterable(list(zip(*self.__karnaugh_map.map))))
-        i, j = 0, 0
-        for i in range(len(one_row_map)):
-            if not one_row_map[i] == self.need_number:
-                continue
-            karnaugh_group = [Cell(i // len(self.__karnaugh_map.map[0]), i % len(self.__karnaugh_map.map[0]))]
-            last_covered_cell = i
-            for j in self.__range_from_nearest_cells(i, one_row_map):
-                if i == j or not one_row_map[j] == self.need_number:
-                    continue
-                if abs(last_covered_cell - j) - 1 & abs(last_covered_cell - j) - 2 == 0:
-                    karnaugh_group.append(Cell(j // len(self.__karnaugh_map.map[0]),
-                                               j % len(self.__karnaugh_map.map[0])))
-                    last_covered_cell = j
-            while not (len(karnaugh_group) & (len(karnaugh_group) - 1) == 0
-                       and self.__is_group_rectangular(karnaugh_group)):
-                karnaugh_group.pop(0 if i > j else len(karnaugh_group) - 1)
-            karnaugh_groups.append(karnaugh_group)
-        return karnaugh_groups
-
-    def __make_group_for_cell(self):
-        pass
-
-    def __range_from_nearest_cells(self, first_cell_index, chain_map):
-        all_cells = [Cell(i // len(self.__karnaugh_map.map[0]),
-                          i % len(self.__karnaugh_map.map[0])) for i in range(len(chain_map))]
-        first_cell = Cell(first_cell_index // len(self.__karnaugh_map.map[0]),
-                          first_cell_index % len(self.__karnaugh_map.map[0]))
-        distances = {all_cells.index(cell): first_cell.distance(cell) for cell in all_cells}
-        return dict(sorted(distances.items(), key=lambda x: x[1]))
+    def __make_karnaugh_groups(self):
+        all_need_number_cells: list[Cell] = [Cell(i, j) for i in range(len(self.__karnaugh_map.map))
+                                             for j in range(len(self.__karnaugh_map.map[i]))
+                                             if self.__karnaugh_map.map[i][j] == self.need_number]
+        all_possible_groups: list[tuple[Cell]] = list()
+        max_possible_group_size = int(math.log(len(list(chain.from_iterable(self.__karnaugh_map.map))), 2))
+        for i in range(max_possible_group_size + 1):
+            all_possible_groups.extend(combinations(all_need_number_cells, 2 ** i))
+        all_possible_groups = list(filter(lambda group: self.__is_group_rectangular(group), all_possible_groups))
+        all_possible_groups = list(filter(lambda group: self.__is_karnaugh_neigbourhood(group), all_possible_groups))
+        return all_possible_groups
 
     @staticmethod
-    def __get_index_of_the_remotest_point(group: list[Cell]):
-        center_mass_x = sum([cell.x for cell in group]) / len(group)
-        center_mass_y = sum([cell.y for cell in group]) / len(group)
-        distances = []
-        for cell in group:
-            distances.append(Cell(center_mass_x, center_mass_y).distance(cell))
-        return distances.index(max(distances))
-
-    def __check_cell_for_neighbourhood(self, i: int, j: int):
-        cell_1 = Cell(i // len(self.__karnaugh_map.map[0]), i % len(self.__karnaugh_map.map[0]))
-        cell_2 = Cell(j // len(self.__karnaugh_map.map[0]), j % len(self.__karnaugh_map.map[0]))
-        return cell_1.are_cells_in_karnaugh_neighbourhood(cell_2)
-
-    @staticmethod
-    def __is_group_rectangular(group: list[Cell]):
+    def __is_karnaugh_neigbourhood(group: Union[list[Cell], tuple[Cell]]):
         if len(group) <= 1:
             return True
-        center_mass_x = sum([cell.x for cell in group]) / len(group)
-        center_mass_y = sum([cell.y for cell in group]) / len(group)
-        distances = [Cell(center_mass_x, center_mass_y).distance(cell) for cell in group]
-        return len(set(distances)) == len(group) // 2
+        mass_center_x = sum([cell.x for cell in group]) / len(group)
+        mass_center_y = sum([cell.y for cell in group]) / len(group)
+        mass_center = Cell(mass_center_x, mass_center_y)
+        distances = [(cell, mass_center.distance(cell)) for cell in group]
+        min_distance = distances[0]
+        for distance in distances:
+            if distance[1] < min_distance[1]:
+                min_distance = distance
+        if min_distance[0].x == mass_center.x or min_distance[0].y == mass_center.y:
+            return min_distance[1] - int(min_distance[1]) == 0.5
+        projection_x = abs(mass_center_x - min_distance[0].x)
+        projection_y = abs(mass_center_y - min_distance[0].y)
+        return projection_x - int(projection_x) == 0.5 and projection_y - int(projection_y) == 0.5
+
+    def __is_group_rectangular(self, group: Union[list[Cell], tuple[Cell]]):
+        if len(group) <= 1:
+            return True
+        else:
+            if len(set([cell.x for cell in group])) == 1 or len(set([cell.y for cell in group])) == 1:
+                return True
+            else:
+                return self.__check_for_common_rectangularity(group)
 
     @staticmethod
-    def __get_obligatory_groups(karnaugh_groups: list[list[Cell]]):
+    def __check_for_common_rectangularity(group: Union[list[Cell], tuple[Cell]]):
+        x_lines_amount = len(set([cell.x for cell in group]))
+        y_lines_amount = len(set([cell.y for cell in group]))
+        for cell in group:
+            x_y_symmetry = [0, 0]
+            for other_cell in group:
+                if cell == other_cell:
+                    continue
+                if cell.x == other_cell.x:
+                    x_y_symmetry[0] += 1
+                elif cell.y == other_cell.y:
+                    x_y_symmetry[1] += 1
+            if not x_y_symmetry == [x_lines_amount - 1, y_lines_amount - 1]:
+                return False
+        mass_center_x = sum([cell.x for cell in group]) / len(group)
+        mass_center_y = sum([cell.y for cell in group]) / len(group)
+        mass_center = Cell(mass_center_x, mass_center_y)
+        distances = [mass_center.distance(cell) for cell in group]
+        return len(set(distances)) == len(distances) // 2 or (len(set(distances)) == 1)
+
+    @staticmethod
+    def __get_obligatory_groups(karnaugh_groups: Union[list[list[Cell]], list[tuple[Cell]]]):
         karnaugh_groups = sorted(karnaugh_groups, key=len, reverse=True)
         covered_cells = list()
         obligatory_groups = list()
