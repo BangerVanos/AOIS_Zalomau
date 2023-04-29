@@ -2,7 +2,7 @@ from minimizing_calculation_quine_method.minimizing_calculation_quine_method imp
 from minimizing_karnaugh_method.minimizing_karnaugh_method import KarnaughMinimizer
 
 
-formula = '(!((!x1+!x2)&!(x1&!x3)))'
+formula = '((a+b+!c)*(a+!b))'
 
 
 def test_calculation_method():

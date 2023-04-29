@@ -67,9 +67,7 @@ class QuineAndCalculationMinimizer:
         for literal in first_literals:
             if not (literal in second_literals or literal.replace('!', '') in second_literals):
                 return False
-        if self.__number_of_inverted_literals(first_literals, second_literals) != 1:
-            return False
-        return True
+        return self.__number_of_inverted_literals(first_literals, second_literals) == 1
 
     def __number_of_inverted_literals(self, first_literals: list[str], second_literals: list[str]):
         number_of_inverted_literals = 0

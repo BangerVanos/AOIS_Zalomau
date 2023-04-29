@@ -1,5 +1,5 @@
 from src.src import AssociativeMemory
-from src.cool_text_colors import BGcolors as bg
+from src.text_colors import BGcolors as bg
 import random
 
 

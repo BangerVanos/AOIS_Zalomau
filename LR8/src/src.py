@@ -1,6 +1,9 @@
+MEMORY_SIZE = 16
+
+
 class AssociativeMemory:
     def __init__(self):
-        self.__memory_table: list[list[int]] = [[0] * 16 for _ in range(16)]
+        self.__memory_table: list[list[int]] = [[0] * MEMORY_SIZE for _ in range(MEMORY_SIZE)]
         self.__is_table_diagonalized = False
         self.__logical_operations = {'unequivalence': self.__unequivalence_operation,
                                      'equivalence': self.__equivalence_operation,
@@ -14,8 +17,8 @@ class AssociativeMemory:
     def diagonal_addressing(self):
         if self.__is_table_diagonalized:
             return
-        new_memory_table = [[0] * 16 for _ in range(16)]
-        for i in range(16):
+        new_memory_table = [[0] * MEMORY_SIZE for _ in range(MEMORY_SIZE)]
+        for i in range(MEMORY_SIZE):
             new_word = [word[i] for word in self.__memory_table]
             new_word = self.__word_shift(new_word, i)
             new_memory_table[i] = new_word
@@ -25,9 +28,9 @@ class AssociativeMemory:
     def reverse_diagonal_addressing(self):
         if not self.__is_table_diagonalized:
             return
-        new_memory_table = [[0] * 16 for _ in range(16)]
+        new_memory_table = [[0] * MEMORY_SIZE for _ in range(MEMORY_SIZE)]
         self.__transpose_memory_table()
-        for i in range(16):
+        for i in range(MEMORY_SIZE):
             new_memory_table[i] = self.__word_shift(self.__memory_table[i], -i)
         self.__memory_table = list(map(list, zip(*new_memory_table)))
         self.__is_table_diagonalized = False
@@ -36,18 +39,18 @@ class AssociativeMemory:
         if not self.__is_table_diagonalized:
             self.diagonal_addressing()
         optimized_table = list(map(list, zip(*self.__memory_table)))
-        return_word = ''.join([str(optimized_table[i][(word_index + i) % 16]) for i in range(16)])
+        return_word = ''.join([str(optimized_table[i][(word_index + i) % MEMORY_SIZE]) for i in range(MEMORY_SIZE)])
         return return_word
 
     def write_word(self, word_index: int, word: str):
-        if len(word) < 16 or len(word) > 16:
-            raise ValueError('Word length must be equal to 16')
+        if len(word) < MEMORY_SIZE or len(word) > MEMORY_SIZE:
+            raise ValueError('Word length must be equal to MEMORY_SIZE')
         if not self.__is_table_diagonalized:
             self.diagonal_addressing()
         optimized_word_representation = list(map(int, list(word)))
         optimized_table = list(map(list, zip(*self.__memory_table)))
-        for i in range(16):
-            optimized_table[i][(word_index + i) % 16] = optimized_word_representation[i]
+        for i in range(MEMORY_SIZE):
+            optimized_table[i][(word_index + i) % MEMORY_SIZE] = optimized_word_representation[i]
         self.__memory_table = list(map(list, zip(*optimized_table)))
 
     def read_digit_col(self, digit_col_index: int):
@@ -57,8 +60,8 @@ class AssociativeMemory:
         return ''.join(list(map(str, self.__word_shift(optimized_table[digit_col_index], -digit_col_index))))
 
     def write_digit_col(self, digit_col_index: int, digit_col: str):
-        if len(digit_col) < 16 or len(digit_col) > 16:
-            raise ValueError('Digit column length must be equal to 16')
+        if len(digit_col) < MEMORY_SIZE or len(digit_col) > MEMORY_SIZE:
+            raise ValueError('Digit column length must be equal to MEMORY_SIZE')
         if not self.__is_table_diagonalized:
             self.diagonal_addressing()
         optimized_col_representation = list(map(int, list(digit_col)))
@@ -69,14 +72,14 @@ class AssociativeMemory:
 
     @staticmethod
     def __word_shift(word: list[int], shift: int):
-        shift = shift % 16
+        shift = shift % MEMORY_SIZE
         return word[-shift:] + word[:-shift]
 
     def logical_operation(self, first_digit_col_index: int, second_digit_col_index: int, logical_operation: str) -> str:
         first_digit_col: list[int] = list(map(int, list(self.read_digit_col(first_digit_col_index))))
         second_digit_col: list[int] = list(map(int, list(self.read_digit_col(second_digit_col_index))))
         operation_result: list[int] = list()
-        for i in range(16):
+        for i in range(MEMORY_SIZE):
             x1, x2 = first_digit_col[i], second_digit_col[i]
             operation_result.append(self.__logical_operations[logical_operation](x1, x2))
         return ''.join(list(map(str, operation_result)))
@@ -98,7 +101,7 @@ class AssociativeMemory:
         return int(x1 or not x2)
 
     def arithmetical_operation(self, mask: str):
-        for i in range(16):
+        for i in range(MEMORY_SIZE):
             word = self.read_word(i)
             if word[:3] == mask:
                 field_a, field_b = word[3:7], word[7:11]
@@ -119,7 +122,7 @@ class AssociativeMemory:
     @staticmethod
     def __comparison_flags(memory_word: str, search_word: str):
         prev_g_flag, prev_l_flag = False, False
-        for i in range(16):
+        for i in range(MEMORY_SIZE):
             memory_word_digit = bool(int(memory_word[i]))
             search_word_digit = bool(int(search_word[i]))
             next_g_flag = prev_g_flag or (not search_word_digit and memory_word_digit and not prev_l_flag)
@@ -140,17 +143,17 @@ class AssociativeMemory:
             raise ValueError('Flags can\'t be equal to 1 at the same time')
 
     def search_within_given_range(self, lower_bound: str, upper_bound: str):
-        search_words = [self.read_word(i) for i in range(16) if self.__compare_words(self.read_word(i),
+        search_words = [self.read_word(i) for i in range(MEMORY_SIZE) if self.__compare_words(self.read_word(i),
                                                                                      upper_bound) == -1]
         search_words = list(filter(lambda word: self.__compare_words(word, lower_bound) == 1, search_words))
         return search_words
 
     def closest_pattern_search(self, pattern: str):
         difference_list = list()
-        for i in range(16):
+        for i in range(MEMORY_SIZE):
             difference_rank = 0
             word = self.read_word(i)
-            for j in range(16):
+            for j in range(MEMORY_SIZE):
                 difference_rank += 1 if word[j] != pattern[j] and pattern[j] != 'x' else 0
             difference_list.append((word, difference_rank))
         min_difference_rank = min([i[1] for i in difference_list])
@@ -169,7 +172,7 @@ class AssociativeMemory:
             return self.__find_extremum_in_word_sequence(primary_results, kwargs['filter_mode'])
 
     def __find_extremum_in_word_sequence(self, sequence: list[str], mode: str = 'min'):
-        extremum_word = '0' * 16 if len(sequence) <= 0 else sequence[0]
+        extremum_word = '0' * MEMORY_SIZE if len(sequence) <= 0 else sequence[0]
         result_sequence: list[str] = list()
         for word in sequence:
             if self.__compare_words(word, extremum_word) == {'min': -1, 'max': 1}[mode]:
